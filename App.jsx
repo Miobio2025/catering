@@ -1,10 +1,5 @@
-// App principal con todas las pantallas y lógica integrada
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
+
+import { useState } from 'react';
 
 const categorias = {
   entrantes: [
@@ -38,7 +33,12 @@ export default function App() {
     localidad: "",
     hora: "",
   });
-  const [seleccion, setSeleccion] = useState({ entrantes: [], principales: [], postres: [], bebidas: [] });
+  const [seleccion, setSeleccion] = useState({
+    entrantes: [],
+    principales: [],
+    postres: [],
+    bebidas: [],
+  });
   const [quiereBebidas, setQuiereBebidas] = useState(false);
 
   const handleFormulario = (e) => {
@@ -58,93 +58,86 @@ export default function App() {
   };
 
   const handleEnviar = async () => {
-    const data = {
-      ...formulario,
-      seleccion,
-    };
-    try {
-      await fetch("https://tu-backend-render.com/enviar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      toast("Solicitud enviada. En menos de 24h nos pondremos en contacto contigo. ¡Gracias!");
-    } catch (e) {
-      toast("Error al enviar. Inténtalo más tarde.");
-    }
+    const data = { ...formulario, seleccion };
+    console.log("Solicitud enviada:", data);
+    alert("Solicitud enviada. En menos de 24 horas nos pondremos en contacto contigo. ¡Gracias!");
   };
 
   if (paso === 1) {
     return (
-      <div className="p-4 max-w-md mx-auto">
-        <h1 className="text-xl font-bold mb-4">Datos básicos</h1>
+      <div style={{ padding: "1rem", maxWidth: "500px", margin: "0 auto" }}>
+        <h1>Datos básicos</h1>
         {Object.keys(formulario).map((campo) => (
-          <Input
-            key={campo}
-            name={campo}
-            value={formulario[campo]}
-            onChange={handleFormulario}
-            placeholder={campo.charAt(0).toUpperCase() + campo.slice(1)}
-            className="mb-2"
-          />
+          <div key={campo} style={{ marginBottom: "1rem" }}>
+            <input
+              name={campo}
+              value={formulario[campo]}
+              onChange={handleFormulario}
+              placeholder={campo.charAt(0).toUpperCase() + campo.slice(1)}
+              style={{ width: "100%", padding: "0.5rem" }}
+            />
+          </div>
         ))}
-        <Button onClick={() => setPaso(2)}>Siguiente</Button>
+        <button onClick={() => setPaso(2)}>Siguiente</button>
       </div>
     );
   }
 
   if (paso === 2) {
     return (
-      <div className="p-4 max-w-md mx-auto">
-        <h2 className="text-lg font-semibold mb-2">Elige tu menú pos partido</h2>
+      <div style={{ padding: "1rem", maxWidth: "500px", margin: "0 auto" }}>
+        <h2>Elige tu menú pos partido</h2>
         {Object.entries(categorias).map(([categoria, platos]) => {
           if (categoria === "bebidas" && !quiereBebidas) return null;
-          if (categoria === "bebidas") return null;
-          return (
-            <Card className="mb-4" key={categoria}>
-              <CardContent>
-                <h3 className="font-bold capitalize">{categoria}</h3>
-                {platos.map(({ nombre, precio }) => (
-                  <div key={nombre} className="flex items-center justify-between">
-                    <label>{nombre} - {precio}</label>
-                    <Checkbox
-                      checked={seleccion[categoria].includes(nombre)}
-                      onCheckedChange={() => toggleSeleccion(categoria, nombre)}
-                    />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+          if (categoria === "bebidas" && !seleccion.bebidas.length && quiereBebidas) return (
+            <div key="bebidas">
+              <h3>Bebidas</h3>
+              {platos.map(({ nombre, precio }) => (
+                <label key={nombre} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>{nombre} - {precio}</span>
+                  <input
+                    type="checkbox"
+                    checked={seleccion.bebidas.includes(nombre)}
+                    onChange={() => toggleSeleccion("bebidas", nombre)}
+                  />
+                </label>
+              ))}
+            </div>
           );
+          if (categoria !== "bebidas") {
+            return (
+              <div key={categoria}>
+                <h3>{categoria}</h3>
+                {platos.map(({ nombre, precio }) => (
+                  <label key={nombre} style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>{nombre} - {precio}</span>
+                    <input
+                      type="checkbox"
+                      checked={seleccion[categoria].includes(nombre)}
+                      onChange={() => toggleSeleccion(categoria, nombre)}
+                    />
+                  </label>
+                ))}
+              </div>
+            );
+          }
+          return null;
         })}
         {!quiereBebidas ? (
-          <Button onClick={() => setQuiereBebidas(true)} className="mb-4">¿Quieres bebidas?</Button>
-        ) : (
-          <Card className="mb-4">
-            <CardContent>
-              <h3 className="font-bold">Bebidas</h3>
-              {categorias.bebidas.map(({ nombre, precio }) => (
-                <div key={nombre} className="flex items-center justify-between">
-                  <label>{nombre} - {precio}</label>
-                  <Checkbox
-                    checked={seleccion.bebidas.includes(nombre)}
-                    onCheckedChange={() => toggleSeleccion("bebidas", nombre)}
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-        <Button onClick={() => setPaso(3)}>He terminado</Button>
+          <button onClick={() => setQuiereBebidas(true)}>¿Quieres bebidas?</button>
+        ) : null}
+        <div style={{ marginTop: "1rem" }}>
+          <button onClick={() => setPaso(3)}>He terminado</button>
+        </div>
       </div>
     );
   }
 
   if (paso === 3) {
     return (
-      <div className="p-4 max-w-md mx-auto text-center">
-        <h2 className="text-lg mb-4">¿Has terminado?</h2>
-        <Button onClick={handleEnviar}>Sí, enviar solicitud</Button>
+      <div style={{ padding: "1rem", textAlign: "center" }}>
+        <h2>¿Has terminado?</h2>
+        <button onClick={handleEnviar}>Sí, enviar solicitud</button>
       </div>
     );
   }
